@@ -1,0 +1,13 @@
+# raw zip files that are decompressed within the project
+.archives/
+
+# handouts (property of the University)
+handouts/
+
+# training sets
+data/
+
+# "starter kit" code handout
+starter_kit/
+
+.DS_Store
