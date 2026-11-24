@@ -74,28 +74,25 @@ crop rule uses square crops with optional rotation and Lanczos resizing.
 
 ## Layout
 
-<!-- Where things live: data pipeline, manifests, models, training
-     scripts, configs, experiment logs, report. -->
-
-`AGENTS.md`: You're here!  
 - `data/student/` contains the unlabelled raw pool.
 - `data/dev/` contains curated examples for inspection and aggregate validation.
-(`eval_results.json`: Output of `evaluate.py`)  
-(`eval_results.png`: Output of `evaluate.py`)  
-`starter_kit/`: The toolkit for grading our work.  
-`starter_kit/submission_template/`: Template of the `submission` folder.  
-`submission/`: A soon-to-be-filled-in version of the submission template.
+- `starter_kit/` contains the course evaluator, crop code and audit tool.
+- `curate.py`, `photo_filter.py` and `configs/exclusions.csv` create the manifest.
+- `train.py` fits and exports the denoiser. `submission/` is the graded interface, manifest and weights.
+- `compare.py` runs aggregate dev comparisons. `results/` records measurements and data counts.
+- `work/` stores local caches, intermediate checkpoints and review images.
+- `audit/`, `DATA_CARD.md`, `AGENT_LOG.md` and `report.pdf` support the student handoff.
 
 
 ## Commands
 
-<!-- Exact commands, e.g.
-- Tests:     `pytest -q`
-- Data:      `python data/build_manifest.py --out submission/manifest.csv`
-- Audit:     `python starter_kit/audit.py --manifest submission/manifest.csv --student-id ...`
-- Train:     `python train.py --manifest submission/manifest.csv --config configs/cgan.yaml`
-- Evaluate:  `python starter_kit/evaluate.py --submission submission --n-per-class 250`
--->
+Run from the project root in Zsh, using `ptrc` and the dependency paths in `README.md`.
+
+- Data: `python curate.py scan` then `python curate.py build --source-margin=-0.022 --crop-margin=-0.031 --species-margin=0.015 --exclude configs/exclusions.csv`
+- Audit: `python starter_kit/audit.py --manifest submission/manifest.csv --student-id "$student_id"`
+- Train: `python train.py fit --steps 24000 --snapshot-every 2000 --run-dir work/train`
+- Tests: `python -m pytest -q -p no:cacheprovider tests starter_kit/tests`
+- Evaluate: `python starter_kit/evaluate.py --submission submission --device cpu --n-per-class 1000 --grading --out results/official.json`
 
 ## Conventions
 
@@ -104,7 +101,8 @@ crop rule uses square crops with optional rotation and Lanczos resizing.
 
 ### Code style
 
-
+Use explicit tensor shapes and fixed seeds for reproducible experiments. Store training resumes and
+detector caches in `work/`, and publish aggregate numbers and run settings in `results/`.
 
 ### Commits
 
@@ -139,13 +137,17 @@ Co-authored-by: [$PTRC_USER_ATTR]        # set by your commit message
 
 ## Verification checklist for every change
 
-<!-- What the agent must check before claiming something works, e.g.
-- unit tests pass (including: my crop code == catdog_eval.data.crop)
-- `check_manifest` reports no errors
-- a grid of 100 random crops from a new manifest was saved and looked at
-- a short training run shows the losses behaving and a sample grid was looked at
--->`
+- Run the crop, overfit, shape, value range, seed and batch-independence tests.
+- Run `check_manifest`; review randomly selected crop/source pairs and record exclusions.
+- Check the loss and sample grids. Run the official protocol at 1,000 generated images per class.
+- Match the checkpoint manifest hash, evaluation stats, and audit rows to the final manifest.
 
 ## Known pitfalls in this project
 
-<!-- Things that went wrong before and how to avoid them. -->
+- Detectors also recognize heads printed on products. Check both source and crop against photo prompts,
+  then review the remaining crops. The filter does not prove compliance on an individual image.
+- A mixed Conda and wheel PyTorch install can produce a dynamic-library conflict. Keep curation
+  dependencies in the project-local overlay described in the README.
+- The starter kit extracts float64 Inception features. Use its CPU device for the official evaluator.
+- Local development metrics use the dev set. Preserve the hidden grading protocol and keep all pool
+  images, intermediate checkpoints, and tool dependencies out of the submission archive.

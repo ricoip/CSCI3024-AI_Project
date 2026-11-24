@@ -214,6 +214,11 @@ def build(args, pool):
     if not args.without_photo_filter:
         candidates = screen_photos(args, pool, candidates)
     counts["photo_accepted"] = len(candidates)
+    if args.exclude is not None:
+        with args.exclude.open(newline="", encoding="utf-8") as handle:
+            excluded = {row["pool_id"] for row in csv.DictReader(handle)}
+        candidates = [candidate for candidate in candidates if candidate[1]["pool_id"] not in excluded]
+    counts["after_review_exclusions"] = len(candidates)
     kept = []
     unique = DuplicateFilter()
     for _, row in sorted(candidates, key=lambda candidate: (-candidate[0], candidate[1]["pool_id"])):
@@ -246,6 +251,8 @@ def build(args, pool):
                                  "source_margin": args.source_margin,
                                  "crop_margin": args.crop_margin,
                                  "species_margin": args.species_margin}
+    if args.exclude is not None:
+        stats["exclusions_sha256"] = file_digest(args.exclude)
     write_json(args.stats, stats)
     print(json.dumps(stats, indent=2), flush=True)
 
@@ -257,6 +264,7 @@ def screen_photos(args, pool, candidates):
     detector = PhotoFilter(args.photo_weights, device)
     thresholds = (args.source_margin, args.crop_margin, args.species_margin)
     keep = []
+    scores_log = []
     print(f"Screening {len(candidates):,} candidate photos on {device}", flush=True)
     for start in range(0, len(candidates), args.photo_batch_size):
         batch = candidates[start:start + args.photo_batch_size]
@@ -265,10 +273,21 @@ def screen_photos(args, pool, candidates):
         crops = [crop(image, row["x0"], row["y0"], row["size"], row["angle"], res=128)
                  for image, row in zip(originals, rows, strict=True)]
         margins = detector.margins(originals, crops, [row["label"] for row in rows])
+        if args.photo_scores is not None:
+            scores_log.extend({**row, **dict(zip(("source_margin", "crop_margin", "species_margin"),
+                                                scores, strict=True))}
+                              for row, scores in zip(rows, margins, strict=True))
         keep.extend(candidate for candidate, scores in zip(batch, margins, strict=True)
                     if all(score >= threshold for score, threshold in zip(scores, thresholds, strict=True)))
         if start % (args.photo_batch_size * 16) == 0:
             print(f"Screened {start + len(batch):,}/{len(candidates):,}, kept {len(keep):,}", flush=True)
+    if args.photo_scores is not None:
+        args.photo_scores.parent.mkdir(parents=True, exist_ok=True)
+        with args.photo_scores.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=FIELDS +
+                                    ("source_margin", "crop_margin", "species_margin"))
+            writer.writeheader()
+            writer.writerows(scores_log)
     return keep
 
 
@@ -321,6 +340,7 @@ def main():
     build_parser.add_argument("--limit", type=int, help="use a prefix of the cached scan for the pilot")
     build_parser.add_argument("--out", type=Path, default=Path("submission/manifest.csv"))
     build_parser.add_argument("--stats", type=Path, default=Path("results/data.json"))
+    build_parser.add_argument("--exclude", type=Path, help="CSV of pool IDs excluded during visual review")
     build_parser.add_argument("--body-conf", type=float, default=0.45)
     build_parser.add_argument("--head-conf", type=float, default=0.45)
     build_parser.add_argument("--second-head-conf", type=float, default=0.30)
@@ -328,6 +348,7 @@ def main():
     build_parser.add_argument("--without-photo-filter", action="store_true", help="detector-only pilot")
     build_parser.add_argument("--photo-weights", type=Path, default=Path("data/ViT-B-32.pt"))
     build_parser.add_argument("--photo-batch-size", type=int, default=32)
+    build_parser.add_argument("--photo-scores", type=Path)
     build_parser.add_argument("--source-margin", type=float, default=0.010)
     build_parser.add_argument("--crop-margin", type=float, default=0.000)
     build_parser.add_argument("--species-margin", type=float, default=0.010)

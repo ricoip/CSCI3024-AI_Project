@@ -1,0 +1,42 @@
+{
+  "stage_counts": {
+    "scanned": 76250,
+    "body_detection": 13794,
+    "single_head": 8749,
+    "species_matched": 8300,
+    "valid_geometry": 4325,
+    "photo_screened": 4325,
+    "photo_accepted": 2084,
+    "after_review_exclusions": 2075,
+    "after_dedup": 2072
+  },
+  "class_counts": {
+    "cat": 987,
+    "dog": 1085
+  },
+  "scan": {
+    "batch_size": 32,
+    "body_sha256": "9b09cc8bf347f0fc8a5f7657480587f25db09b34bf33b0652110fb03a8ad4fef",
+    "detection_floor": 0.2,
+    "device": "mps",
+    "head_sha256": "39af4aadf1873acc3380b7402fe8e686f6e565f2dc6a49a814ba797e8e1c89b4",
+    "imgsz": 256,
+    "pool_index_sha256": "6e3998f9f13ba95d58c4f72d6c14eeaff1c4da79c34153277921de06621106b9",
+    "ultralytics_version": "8.4.218"
+  },
+  "filters": {
+    "body_conf": 0.45,
+    "head_conf": 0.45,
+    "second_head_conf": 0.3,
+    "fill": 0.7
+  },
+  "manifest_sha256": "f0d96d4db8794ece6665768627f7db38862720116818395f66ed45127490151c",
+  "warnings": [],
+  "photo_filter": {
+    "sha256": "40d365715913c9da98579312b702a82c18be219cc2a73407c4526f58eba950af",
+    "source_margin": -0.022,
+    "crop_margin": -0.031,
+    "species_margin": 0.015
+  },
+  "exclusions_sha256": "d255ef0416bbdec654bad88a5577c5143f05b264be6e3cbdee1818645166f1aa"
+}

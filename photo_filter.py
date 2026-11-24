@@ -7,6 +7,8 @@ from torch.nn.functional import normalize
 
 SPECIES = ("cat", "dog")
 PHOTO = (
+    "a photo of a {animal}",
+    "a photo of a {animal}'s head",
     "a natural photo of a real pet {animal}",
     "a photograph of a living {animal} in a real scene",
     "a candid photograph of the face of a real {animal}",
