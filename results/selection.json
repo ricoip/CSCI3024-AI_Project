@@ -1,0 +1,7 @@
+{
+  "checkpoint": "work/train/ema-036000.pt",
+  "training_step": 36000,
+  "guidance_scale": 3.5,
+  "ddim_steps": 32,
+  "rationale": "Step 36,000 with scale 3.5 gave the highest accuracy and recall and the lowest FID among the matched 160-per-class trials. Memorization was 1.56% in that trial. We checked the selected checkpoint again at the full protocol size."
+}

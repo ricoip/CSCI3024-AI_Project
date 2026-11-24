@@ -1,0 +1,16 @@
+{
+  "width": 64,
+  "batch_size": 64,
+  "lr": 0.0003,
+  "label_dropout": 0.15,
+  "ema_decay": 0.999,
+  "seed": 3024,
+  "warmup": 250,
+  "manifest_sha256": "f0d96d4db8794ece6665768627f7db38862720116818395f66ed45127490151c",
+  "device": "mps",
+  "steps": 36000,
+  "class_counts": [
+    987,
+    1085
+  ]
+}

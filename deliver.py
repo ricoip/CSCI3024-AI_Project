@@ -50,7 +50,7 @@ def wilson(successes, total):
 
 def audit_summary(student_id):
     with Path("audit/audit.csv").open(newline="", encoding="utf-8") as handle:
-        recorded = list(csv.DictReader(handle))
+        recorded = sorted(csv.DictReader(handle), key=lambda row: int(row["index"]))
     manifest = check_manifest("submission/manifest.csv", default_pool())
     if manifest["errors"]:
         raise ValueError(manifest["errors"])
@@ -119,7 +119,7 @@ Sources. [YOLO26](https://docs.ultralytics.com/models/yolo26/),
 """, encoding="utf-8")
 
 
-def build_report(name, student_id, data, training, weights, official, trials, audit, audit_complete):
+def build_report(name, student_id, data, training, weights, official, trials, audit, audit_complete, rationale):
     fonts = Path(get_data_path()) / "fonts" / "ttf"
     pdfmetrics.registerFont(TTFont("DejaVu", str(fonts / "DejaVuSans.ttf")))
     pdfmetrics.registerFont(TTFont("DejaVuBold", str(fonts / "DejaVuSans-Bold.ttf")))
@@ -130,6 +130,7 @@ def build_report(name, student_id, data, training, weights, official, trials, au
     heading = ParagraphStyle("Heading", parent=body, fontName="DejaVuBold", fontSize=13, leading=17,
                              spaceBefore=8, spaceAfter=7, textColor=accent)
     small = ParagraphStyle("Small", parent=body, fontSize=8.5, leading=12, textColor=muted, spaceAfter=8)
+    reference = ParagraphStyle("Reference", parent=small, leading=10.5, spaceAfter=4)
     equation = ParagraphStyle("Equation", parent=body, fontSize=10, leading=20, leftIndent=14)
     story = []
 
@@ -139,7 +140,7 @@ def build_report(name, student_id, data, training, weights, official, trials, au
     def h(text):
         p(text, heading)
 
-    def table(rows, widths):
+    def table(rows, widths, padding=6):
         t = Table(rows, colWidths=widths, hAlign="LEFT", repeatRows=1)
         t.setStyle(TableStyle([
             ("FONTNAME", (0, 0), (-1, -1), "DejaVu"),
@@ -148,8 +149,8 @@ def build_report(name, student_id, data, training, weights, official, trials, au
             ("BACKGROUND", (0, 0), (-1, 0), accent),
             ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
             ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#edf4f2")]),
-            ("TOPPADDING", (0, 0), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), padding),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), padding),
         ]))
         story.extend((t, Spacer(1, 10)))
 
@@ -198,7 +199,8 @@ def build_report(name, student_id, data, training, weights, official, trials, au
       f"Sampling uses exponential moving average weights from step {weights['training_step']:,}.")
     h("Classifier-free guidance and DDIM")
     p("At each reverse step, the same denoiser predicts conditional and unconditional velocities. "
-      "Guide scale s combines them as in classifier-free guidance [8]. The deterministic DDIM update [9] "
+      "Guide scale s combines them as in classifier-free guidance [8]. Scale 1 uses the conditional "
+      "prediction. The deterministic DDIM update [9] "
       "clips the clean estimate and recomputes the noise estimate from that clipped value.")
     p("v̂ = v<sub>null</sub> + s (v<sub>class</sub> − v<sub>null</sub>)<br/>"
       "x̂<sub>0</sub> = clip(√A<sub>t</sub> x<sub>t</sub> − √(1 − A<sub>t</sub>) v̂, −1, 1)<br/>"
@@ -243,22 +245,24 @@ def build_report(name, student_id, data, training, weights, official, trials, au
       "than the official result on the previous page.", small)
     if trials:
         rows = [["Step", "DDIM", "Scale", "Images/class", "Acc.", "FID", "Recall", "Mem."]]
-        for trial in trials:
+        for trial in sorted(trials, key=lambda t: (t["checkpoint_step"], t["ddim_steps"], t["guidance_scale"])):
             t = trial["metrics"]
             rows.append([f"{trial['checkpoint_step']:,}", str(trial["ddim_steps"]), f"{trial['guidance_scale']:g}",
                          str(trial["n_per_class"]), f"{t['accuracy']:.3f}", f"{t['fid']:.2f}",
                          f"{t['recall']:.3f}", f"{t['memorization_rate']:.2%}"])
-        table(rows, [65, 53, 48, 84, 56, 58, 58, 58])
+        table(rows, [65, 53, 48, 84, 56, 58, 58, 58], padding=4)
+    if rationale:
+        p(escape(rationale), small)
     h("What did not work")
     p("The detector-only pilot included packaging, printed clothes, and artwork. The strict "
       "CLIP thresholds retained only nine of the 112 geometrically valid pilot crops. Thresholds "
       "based on the raw-pool pilot recovered many valid photos. The "
-      "visual review still found a small number of obvious misses and added explicit exclusions.")
+      "visual review still found a small number of obvious misses and added explicit exclusions. "
+      "At step 2,000, generated images had noisy textures with little recognizable head structure.")
     h("Working with a coding agent")
     p("Rico chose diffusion and requested a classifier-free guidance comparison. The agent implemented "
-      "the data pipeline, denoiser, tests, and evaluation commands. The project rules restrict pretrained "
-      "models to curation, reserve the evaluator networks for aggregate evaluation, and bind export to "
-      "the training manifest hash. AGENT_LOG.md is the record for the student's independent checks.")
+      "curation, training, and evaluation. It checked the manifest hash at export and replayed the "
+      "generator with a fixed seed. AGENT_LOG.md is the record for the student's independent checks.")
     h("References")
     references = (
         ("Ultralytics. YOLO26 detection model and COCO weights.", "https://docs.ultralytics.com/models/yolo26/"),
@@ -276,7 +280,8 @@ def build_report(name, student_id, data, training, weights, official, trials, au
         ("Song, Meng and Ermon. Denoising Diffusion Implicit Models. 2020.", "https://arxiv.org/abs/2010.02502"),
     )
     for i, (citation, url) in enumerate(references, 1):
-        p(f'[{i}] <link href="{url}" color="#146459">{citation}</link>', small)
+        p(f'[{i}] <link href="{url}" color="#146459">{citation}</link>', reference)
+    p("Course resource. CISC3024 project handout and starter kit.", reference)
 
     def footer(canvas, doc):
         canvas.saveState()
@@ -318,6 +323,7 @@ def main():
     data = read_json("results/data.json")
     training = read_json("results/train_config.json")
     official = read_json("results/official.json")
+    selection = read_json("results/selection.json")
     weights = torch.load("submission/weights.pt", map_location="cpu", weights_only=True)
     digest = file_digest("submission/manifest.csv")
     if any(digest != record["manifest_sha256"] for record in (data, training, weights)):
@@ -327,7 +333,8 @@ def main():
     trials = [read_json(path) for path in sorted(Path("results").glob("trial-*.json"))]
     audit, complete = audit_summary(args.student_id)
     data_card(data, audit)
-    build_report(args.name, args.student_id, data, training, weights, official, trials, audit, complete)
+    build_report(args.name, args.student_id, data, training, weights, official, trials, audit, complete,
+                 selection["rationale"])
     print("Wrote DATA_CARD.md and report.pdf")
     if args.slides is not None:
         if not args.name or not complete:

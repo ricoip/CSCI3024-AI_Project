@@ -93,13 +93,14 @@ python curate.py build --limit 2048 --device mps \
 ```zsh
 python -m pytest -q -p no:cacheprovider tests starter_kit/tests
 python train.py fit --steps 24000 --snapshot-every 2000 --device mps --run-dir work/train
+python train.py fit --resume --steps 36000 --snapshot-every 2000 --device mps --run-dir work/train
 ```
 
 `train.py fit` draws balanced batches from official reconstructions of the
 manifest. The default run uses width 64, seed 3024, batch size 64, learning rate
 0.0003, and 15% class dropout. For a resumed run, pass the same arguments and
-`--resume`, with a total step count above the last saved step. Save `work/train`
-outside an existing run if you want to rerun from scratch.
+`--resume`, with a total step count above the last saved step. Use a new run
+directory for a fresh experiment.
 
 Use `compare.py` to reproduce a row in `results/trial-*.json`. Pass the row's
 EMA checkpoint step, guidance scale, DDIM steps, and per-class sample count.
@@ -135,7 +136,8 @@ DDIM and produces deterministic instances from seeded CPU noise.
 The official CSV and four audit sheets are in `audit/`. For each index, enter
 `good` or `bad` in `verdict` and give a reason for every `bad`. Use the course
 specification to judge photo content, the species, one head, upright pose,
-centering, head fill and source resolution. Only redraw the sheets if needed,
+centering, head fill and source resolution. The local `work/audit-sources/`
+sheets show the source image and crop for the same audit indices. Only redraw the sheets if needed,
 since the audit command resets the verdicts. Set `student_id` locally in Zsh.
 
 ```zsh
@@ -147,6 +149,9 @@ Record your independent checks in `AGENT_LOG.md`. After labeling and preparing
 your slides, regenerate the report and project archive:
 
 ```zsh
+conda activate ptrc
+export PYTHONPATH="$PWD/data/ptrc-deps"
+read 'student_id?Student ID: '
 python deliver.py --student-id "$student_id" --name "Your Name" --slides /path/to/your/slides.pptx
 ```
 

@@ -1,0 +1,11 @@
+{
+  "manifest_sha256": "f0d96d4db8794ece6665768627f7db38862720116818395f66ed45127490151c",
+  "weights_sha256": "ca4a1a3f76e920893be18f59cffdd108769c1eb114b243155e41d52a27b59118",
+  "official_evaluation_sha256": "b62e5ac86dadb99a22ae8bbfbef2bc1e8aa13c9bbea62bec5d0980e70504d4d8",
+  "official_sample_count": 2000,
+  "interface_passed": true,
+  "valid_manifest_rows": 2072,
+  "seed_replay_matches": true,
+  "changed_seed_changes_output": true,
+  "pytest_passed": 33
+}

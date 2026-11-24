@@ -1,0 +1,28 @@
+{
+  "checkpoint_step": 36000,
+  "ddim_steps": 32,
+  "guidance_scale": 2.5,
+  "n_per_class": 160,
+  "seed": 0,
+  "sampling_device": "mps",
+  "metric_device": "cpu",
+  "metrics": {
+    "num_samples": 320,
+    "reference": "data/dev/dev.npz",
+    "accuracy": 0.918749988079071,
+    "per_class_accuracy": {
+      "cat": 0.9375,
+      "dog": 0.8999999761581421
+    },
+    "fid": 123.09341039677872,
+    "kid": 0.05158313739291178,
+    "kid_std": 0.0014883083024631405,
+    "precision": 0.684374988079071,
+    "recall": 0.2562499940395355,
+    "memorization_rate": 0.00937500037252903,
+    "nn_distance_median": 8.095959663391113,
+    "nn_ratio_median": 0.9465215802192688,
+    "training_images_deduplicated": 4143
+  },
+  "sampling_seconds_per_1000": 13.86685911247696
+}

@@ -11,7 +11,8 @@ from torch.nn import functional as F
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from curate import DuplicateFilter, crop, square_for_head
-from catdog_eval.data import rebuild
+from catdog_eval.data import default_pool, rebuild
+from catdog_eval.manifest import check_manifest
 from submission.generate import CHECKPOINT, Diffusion, generate, load_model, noisy_with_velocity
 from train import loss_for_batch
 
@@ -62,13 +63,21 @@ def test_velocity_parameterization():
 
 
 def test_overfit_one_fixed_denoising_batch():
-    # A fixture exercises the loss and optimizer in an isolated test. These
-    # weights do not leave the test process or enter the project training run.
+    try:
+        pool = default_pool()
+    except FileNotFoundError:
+        pytest.skip("the raw pool is needed for this training sanity check")
+    manifest = Path(__file__).resolve().parents[1] / "submission" / "manifest.csv"
+    checked = check_manifest(manifest, pool)
+    assert checked["errors"] == []
+    rows = [next(row for row in checked["rows"] if row["label"] == label) for label in (0, 1)]
+    photos, labels = rebuild(rows, pool)
+    # Use one documented crop per class. The test model is never exported.
     torch.manual_seed(3024)
     model = Diffusion(width=8)
-    clean = F.pixel_unshuffle(torch.rand(2, 3, 32, 32) * 2 - 1, 2)
+    clean = F.pixel_unshuffle(photos * 2 - 1, 2)
     noise = torch.randn_like(clean)
-    steps, labels = torch.tensor([400, 800]), torch.tensor([0, 1])
+    steps = torch.tensor([400, 800])
     optimizer = torch.optim.AdamW(model.parameters(), lr=0.004)
     before = loss_for_batch(model, clean, labels, noise, steps).item()
     for _ in range(80):
@@ -87,6 +96,8 @@ def test_shape_range_determinism_and_batch_independence(scale):
     first = generate(model, labels, 19)
     assert first.shape == (4, 3, 32, 32)
     assert first.isfinite().all() and 0 <= first.min() <= first.max() <= 1
+    # The CPU evaluator clamps the returned tensor in place after generate returns.
+    first.clamp_(0, 1)
     assert torch.equal(first, generate(model, labels, 19))
     assert (first - generate(model, labels, 20)).abs().mean() > 0.001
     changed = generate(model, torch.tensor([0, 0, 0, 0, 1, 1]), 19)

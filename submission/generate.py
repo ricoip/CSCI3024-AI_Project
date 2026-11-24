@@ -133,7 +133,7 @@ def load_model(device):
     return model.to(device).eval()
 
 
-@torch.inference_mode()
+@torch.no_grad()
 def generate(model, labels, seed):
     if labels.numel() == 0:
         return torch.empty((0, 3, 32, 32), device=labels.device)

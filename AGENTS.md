@@ -22,7 +22,8 @@ Use the project handout as the source of truth for assignment rules.
 - Pretrained models (detectors, CLIP, ...) only for curating data. The generative model is
   trained from scratch; no pretrained weights, no downloads at generation time.
 - Use the evaluation classifier and Inception network only through the official
-  evaluator. Never use either to curate data, train, or generate.
+  evaluator. Never use either, or a model trained to imitate either, to curate
+  data, train, or generate.
 - `generate(model, labels, seed)` must be deterministic in `(labels, seed)` and return
   `[N, 3, 32, 32]` floats in `[0, 1]`. Labels are 0 = cat and 1 = dog.
   Use a local seeded random generator and per-image operations so other batch
@@ -30,6 +31,8 @@ Use the project handout as the source of truth for assignment rules.
   or edits of training images.
 - Budget: <= 20M parameters, submission directory <= 100 MB, memorization rate <= 5%.
 - Do not modify anything under `starter_kit/`.
+- The raw pool is for this course only. Do not redistribute it or share code,
+  manifests, weights, or agent sessions with other students.
 - The student personally labels the 200 official audit crops and records three
   independent checks as they happen in `AGENT_LOG.md`, including at least one data
   check. The student creates the presentation slides and delivers the demo.
@@ -91,6 +94,7 @@ Run from the project root in Zsh, using `ptrc` and the dependency paths in `READ
 - Data: `python curate.py scan` then `python curate.py build --source-margin=-0.022 --crop-margin=-0.031 --species-margin=0.015 --exclude configs/exclusions.csv`
 - Audit: `python starter_kit/audit.py --manifest submission/manifest.csv --student-id "$student_id"`
 - Train: `python train.py fit --steps 24000 --snapshot-every 2000 --run-dir work/train`
+- Continue the recorded run: `python train.py fit --resume --steps 36000 --snapshot-every 2000 --run-dir work/train`
 - Tests: `python -m pytest -q -p no:cacheprovider tests starter_kit/tests`
 - Evaluate: `python starter_kit/evaluate.py --submission submission --device cpu --n-per-class 1000 --grading --out results/official.json`
 
