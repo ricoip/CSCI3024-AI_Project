@@ -1,24 +1,38 @@
 # Project
 
 Class-conditional generation of 32×32 cat and dog heads (course project). The
-training set is curated by the TAs from a raw pool of LAION web images and described by
-`submission/manifest.csv`. Graded by `starter_kit/evaluate.py`; the interface is fixed
-(see `submission/generate.py`).
+training set is curated for this project from the supplied LAION pool and described by
+`submission/manifest.csv`. The official evaluator is `starter_kit/evaluate.py` and the
+submission interface lives in `submission/generate.py`.
+
+Rico chose a **class-conditional diffusion model** and asked to investigate
+**classifier-free guidance (CFG)**. Train a single denoiser with randomly dropped
+class conditioning. Compare conditional-only sampling with modest CFG scales using
+aggregate dev metrics and sample grids. See [Ho and Salimans](https://arxiv.org/abs/2207.12598).
+Use the project handout as the source of truth for assignment rules.
 
 ## Hard constraints (never violate)
 
 - Training images come only from the raw pool in `data/student/`, and every one is a row of
   a manifest (`pool_id,x0,y0,size,angle,label`, cropped with `catdog_eval.data.crop`).
-- Never train on `data/dev/` or anything derived from it; never use other datasets or images
-  made or edited by generative models.
+- Use `data/dev/` for visual inspection and aggregate validation only. Do not use
+  dev images, transformed versions, per-image features, or labels to train any model
+  or to select pool images. Do not train on any other dataset or images made or
+  edited by generative models.
 - Pretrained models (detectors, CLIP, ...) only for curating data. The generative model is
   trained from scratch; no pretrained weights, no downloads at generation time.
-- Never use the evaluation classifier or the evaluator's Inception network in training or
-  generation.
+- Use the evaluation classifier and Inception network only through the official
+  evaluator. Never use either to curate data, train, or generate.
 - `generate(model, labels, seed)` must be deterministic in `(labels, seed)` and return
-  `[N, 3, 32, 32]` floats in `[0, 1]`; labels 0 = cat, 1 = dog.
+  `[N, 3, 32, 32]` floats in `[0, 1]`. Labels are 0 = cat and 1 = dog.
+  Use a local seeded random generator and per-image operations so other batch
+  members cannot change an image. Generate novel samples without returning copies
+  or edits of training images.
 - Budget: <= 20M parameters, submission directory <= 100 MB, memorization rate <= 5%.
 - Do not modify anything under `starter_kit/`.
+- The student personally labels the 200 official audit crops and records three
+  independent checks as they happen in `AGENT_LOG.md`, including at least one data
+  check. The student creates the presentation slides and delivers the demo.
 
 ## Shell and Python environment
 
@@ -52,8 +66,11 @@ say on which Python version to use.
  
 ## Data specification
 
-<!-- Copy the specification from the handout, and add the decisions you made to meet it
-     (detector, thresholds, crop margin, filters), with the reason for each. -->
+Use real, 32×32 RGB photos of exactly one centered, roughly upright cat or dog
+head, including ears. The head should fill approximately 60–80% of the crop side
+and measure at least 32 pixels wide in the pool image. Exclude illustrations,
+renders, toys and prints. Aim for at least 500 usable crops per class. The official
+crop rule uses square crops with optional rotation and Lanczos resizing.
 
 ## Layout
 
@@ -61,7 +78,8 @@ say on which Python version to use.
      scripts, configs, experiment logs, report. -->
 
 `AGENTS.md`: You're here!  
-`data/student/`: Training data.  
+- `data/student/` contains the unlabelled raw pool.
+- `data/dev/` contains curated examples for inspection and aggregate validation.
 (`eval_results.json`: Output of `evaluate.py`)  
 (`eval_results.png`: Output of `evaluate.py`)  
 `starter_kit/`: The toolkit for grading our work.  

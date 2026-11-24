@@ -11,3 +11,8 @@ data/
 starter_kit/
 
 .DS_Store
+__pycache__/
+.pytest_cache/
+work/
+audit/sheet_*.png
+submission/*.pt
