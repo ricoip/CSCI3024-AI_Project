@@ -46,7 +46,7 @@ OtherShell> zsh
 
 (d) % conda activate ptrc
 (ptrc) % <type command here>
-````
+```
 
 This environment contains Python 3.14.10. **PyTorch recommends using this 
 version of Python.** See it for yourself:
