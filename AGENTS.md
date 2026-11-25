@@ -15,18 +15,18 @@ Use the project handout as the source of truth for assignment rules.
 
 - Training images come only from the raw pool in `data/student/`, and every one is a row of
   a manifest (`pool_id,x0,y0,size,angle,label`, cropped with `catdog_eval.data.crop`).
-- Use `data/dev/` for visual inspection and aggregate validation only. Do not use
-  dev images, transformed versions, per-image features, or labels to train any model
-  or to select pool images. Do not train on any other dataset or images made or
-  edited by generative models.
+- Never train on `data/dev/` or anything derived from it; never use other datasets or images
+  made or edited by generative models.
+- Do not use dev images, transformed versions, per-image features, or labels to train any model
+  or to select pool images.
 - Pretrained models (detectors, CLIP, ...) only for curating data. The generative model is
   trained from scratch; no pretrained weights, no downloads at generation time.
-- Use the evaluation classifier and Inception network only through the official
-  evaluator. Never use either, or a model trained to imitate either, to curate
-  data, train, or generate.
+- Never use the evaluation classifier or the evaluator's Inception network in training or
+generation.
+  - Never use either, or a model trained to imitate either, to curate data, train, or generate.
 - `generate(model, labels, seed)` must be deterministic in `(labels, seed)` and return
-  `[N, 3, 32, 32]` floats in `[0, 1]`. Labels are 0 = cat and 1 = dog.
-  Use a local seeded random generator and per-image operations so other batch
+  `[N, 3, 32, 32]` floats in `[0, 1]`; labels 0 = cat, 1 = dog.
+- Use a local seeded random generator and per-image operations so other batch
   members cannot change an image. Generate novel samples without returning copies
   or edits of training images.
 - Budget: <= 20M parameters, submission directory <= 100 MB, memorization rate <= 5%.
