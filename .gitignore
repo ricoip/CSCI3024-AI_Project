@@ -1,6 +1,12 @@
 # raw zip files that are decompressed within the project
 .archives/
 
+# copyrighted stuff
+eval_results.png
+results/*.png
+
+project.zip
+
 # handouts (property of the University)
 handouts/
 
@@ -9,6 +15,9 @@ data/
 
 # "starter kit" code handout
 starter_kit/
+
+# final report kept private
+report.pdf
 
 .DS_Store
 __pycache__/
