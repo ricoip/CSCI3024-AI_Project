@@ -32,7 +32,7 @@ at most three bits.
 
 ## Student audit
 
-0/200 audit rows have valid student verdicts. The precision estimate and confidence interval are pending the completed manual audit.
+188/200 crops met the specification (94.0%). The 95% Wilson interval is 89.8% to 96.5%. The other 12 rows have a recorded failure reason.
 
 The review exposed prints, text over the crop, obscured ears, and tilted heads.
 Detector geometry can still take in too much background or select a profile.

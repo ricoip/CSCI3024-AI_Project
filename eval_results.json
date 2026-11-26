@@ -1,0 +1,83 @@
+{
+  "submission": "/Users/rico/Developer/CISC3024 PatternRecognition/proj/submission",
+  "protocol": {
+    "n_per_class": 1000,
+    "seed": 0,
+    "batch_size": 500,
+    "device": "cpu",
+    "grading": false
+  },
+  "checks": {
+    "deterministic": true,
+    "seed_sensitive": true,
+    "mixed_batch_accuracy": 0.949999988079071,
+    "single_class_batch_accuracy": 0.9200000166893005
+  },
+  "training_data": {
+    "errors": [],
+    "warnings": [],
+    "stats": {
+      "rows": 2072,
+      "valid_rows": 2072,
+      "cat": 987,
+      "dog": 1085,
+      "distinct_pool_images": 2072,
+      "rotated": 0
+    }
+  },
+  "metrics": {
+    "num_samples": 2000,
+    "reference": "data/dev/dev.npz",
+    "accuracy": 0.9309999942779541,
+    "per_class_accuracy": {
+      "cat": 0.9259999990463257,
+      "dog": 0.9359999895095825
+    },
+    "fid": 80.4224387783529,
+    "kid": 0.04188373674065727,
+    "kid_std": 0.0018539875545951132,
+    "precision": 0.6648229956626892,
+    "recall": 0.2345132678747177,
+    "memorization_rate": 0.030500000342726707,
+    "nn_distance_median": 8.36328411102295,
+    "nn_ratio_median": 0.9380830526351929,
+    "training_images_deduplicated": 4143
+  },
+  "resources": {
+    "num_parameters": 3755148,
+    "submission_mb": 14.402122497558594,
+    "seconds_per_1000": 219.77068302099724
+  },
+  "limits": {
+    "max_parameters": 20000000,
+    "max_submission_mb": 100.0,
+    "max_memorization_rate": 0.05
+  },
+  "violations": [],
+  "warnings": [],
+  "marks": {
+    "per_metric": {
+      "accuracy": {
+        "tier": "Excellent",
+        "marks": 5
+      },
+      "fid": {
+        "tier": "Marginal",
+        "marks": 2
+      },
+      "recall": {
+        "tier": "Pass",
+        "marks": 3
+      }
+    },
+    "total": 10,
+    "max": 15,
+    "valid": true
+  },
+  "environment": {
+    "torch": "2.15.0",
+    "python": "3.14.10",
+    "classifier_sha256": "9f66f425bed44b5e515045e5df002e61ca7f68eccfc3204a88ff234eae576afa",
+    "reference_sha256": "3f592dcb3738a00eff9623ec3b4581007b2e8289f5bae1b64e19ef0dd75c7402"
+  }
+}

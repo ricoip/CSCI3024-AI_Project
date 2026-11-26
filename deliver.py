@@ -260,9 +260,10 @@ def build_report(name, student_id, data, training, weights, official, trials, au
       "visual review still found a small number of obvious misses and added explicit exclusions. "
       "At step 2,000, generated images had noisy textures with little recognizable head structure.")
     h("Working with a coding agent")
-    p("Rico chose diffusion and requested a classifier-free guidance comparison. The agent implemented "
-      "curation, training, and evaluation. It checked the manifest hash at export and replayed the "
-      "generator with a fixed seed. AGENT_LOG.md is the record for the student's independent checks.")
+    p("The student chose diffusion and delegated curation, training, and evaluation. A check of seven "
+      "manifest crops in Affinity Photo found artwork, loose framing, and pose errors. Seed replay and "
+      "commit attribution passed. The student flagged the project-local dependency overlay introduced "
+      "after a Conda conflict. AGENT_LOG.md records these checks.")
     h("References")
     references = (
         ("Ultralytics. YOLO26 detection model and COCO weights.", "https://docs.ultralytics.com/models/yolo26/"),
